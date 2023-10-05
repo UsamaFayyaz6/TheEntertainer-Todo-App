@@ -7,6 +7,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restful import Api, Resource, marshal_with
 
+from common.authentication import auth
 from common.helper import parser, todo_item_fields, check_todo_exist
 
 app = Flask(__name__)
@@ -30,7 +31,7 @@ class TodoItem(db.Model):
 
     def as_dict(self):
         """
-        Model to dictionatry
+        Model to dictionary
         """
         return {
             'id': self.id,
@@ -44,7 +45,7 @@ class TodoListCreate(Resource):
     """
     This resource class used for get list of todos and create new todo
     """
-
+    @auth.login_required
     @marshal_with(todo_item_fields)
     def get(self):
         """
@@ -52,6 +53,7 @@ class TodoListCreate(Resource):
         """
         return TodoItem.query.all()
     
+    @auth.login_required
     @marshal_with(todo_item_fields)
     def post(self):
         """
@@ -69,6 +71,7 @@ class TodoRetriveUpdateDelete(Resource):
     This resource class used for retrive, update and delete todo
     """
     
+    @auth.login_required
     @marshal_with(todo_item_fields)
     def get(self, todo_id):
         """
@@ -77,6 +80,7 @@ class TodoRetriveUpdateDelete(Resource):
         result = check_todo_exist(TodoItem, todo_id)
         return result
 
+    @auth.login_required
     @marshal_with(todo_item_fields)
     def put(self, todo_id):
         """
@@ -89,6 +93,7 @@ class TodoRetriveUpdateDelete(Resource):
         db.session.commit()
         return todo_item, 201
 
+    @auth.login_required
     def delete(self, todo_id):
         """
         This method delete todo item against todo_id
@@ -96,7 +101,7 @@ class TodoRetriveUpdateDelete(Resource):
         todo_item = check_todo_exist(TodoItem, todo_id)
         db.session.delete(todo_item)
         db.session.commit()
-        return 'Todo Item has been deleted', 200
+        return {'message':'Todo Item has been deleted'}, 200
 
 api.add_resource(TodoListCreate, '/todos')
 api.add_resource(TodoRetriveUpdateDelete, '/todo/<todo_id>')
