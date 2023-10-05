@@ -9,6 +9,7 @@ from flask_restful import Api, Resource, marshal_with
 
 from common.authentication import auth
 from common.helper import parser, todo_item_fields, check_todo_exist
+from common.encryption import encrypt_response_func
 
 app = Flask(__name__)
 
@@ -16,6 +17,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///todo.sqlite3'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 api = Api(app)
+
 
 class TodoItem(db.Model):
     """
@@ -51,7 +53,8 @@ class TodoListCreate(Resource):
         """
         This method return all Todo
         """
-        return TodoItem.query.all()
+        all_todos = TodoItem.query.all()
+        return {'encrypted_response': encrypt_response_func(all_todos)}
     
     @auth.login_required
     @marshal_with(todo_item_fields)
@@ -63,7 +66,7 @@ class TodoListCreate(Resource):
         new_todo = TodoItem(todo=data['todo'], description=data['description'])
         db.session.add(new_todo)
         db.session.commit()
-        return new_todo
+        return {'encrypted_response': encrypt_response_func(new_todo, TodoItem)}
     
 
 class TodoRetriveUpdateDelete(Resource):
@@ -77,8 +80,8 @@ class TodoRetriveUpdateDelete(Resource):
         """
         This method return single todo against todo_id
         """
-        result = check_todo_exist(TodoItem, todo_id)
-        return result
+        todo_item = check_todo_exist(TodoItem, todo_id)
+        return {'encrypted_response': encrypt_response_func(todo_item, TodoItem)}
 
     @auth.login_required
     @marshal_with(todo_item_fields)
@@ -91,7 +94,7 @@ class TodoRetriveUpdateDelete(Resource):
         todo_item.todo = data['todo']
         todo_item.description = data['description']
         db.session.commit()
-        return todo_item, 201
+        return {'encrypted_response': encrypt_response_func(todo_item, TodoItem)}, 201
 
     @auth.login_required
     def delete(self, todo_id):
@@ -101,7 +104,8 @@ class TodoRetriveUpdateDelete(Resource):
         todo_item = check_todo_exist(TodoItem, todo_id)
         db.session.delete(todo_item)
         db.session.commit()
-        return {'message':'Todo Item has been deleted'}, 200
+        return {'encrypted_response': encrypt_response_func('Todo Item has been deleted', '')}, 200
+
 
 api.add_resource(TodoListCreate, '/todos')
 api.add_resource(TodoRetriveUpdateDelete, '/todo/<todo_id>')
