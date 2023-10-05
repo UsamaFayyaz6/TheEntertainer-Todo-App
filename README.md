@@ -38,13 +38,10 @@ I make a file in project/common/decryption.py this file you will use for decrypt
 
 import json
 from cryptography.fernet import Fernet
-
 SECRET_KEY = 'your_secret_key_is_available_in_encryption file' <!--`b'kNSzrr2qU64mtDiRWNgG3sQ77S5iKvT2FjstsIflw7g='-->
 cipher_suite = Fernet(SECRET_KEY)
-
 def decrypt_response(data):
     decrypted_data = cipher_suite.decrypt(data.encode())
     decrypted_response = json.loads(decrypted_data)
-
     return decrypted_response
  
