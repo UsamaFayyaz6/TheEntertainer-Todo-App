@@ -11,9 +11,7 @@ Todo App using flask-restful include multiple features like Basic Authentication
 
 ## Installation
 
-Provide installation instructions, such as:
-
-1. Clone the repository:
+Clone the repository:
 
    ```shell
    git clone https://github.com/UsamaFayyaz6/TheEntertainer-Todo-App.git
